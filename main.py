@@ -11,12 +11,59 @@ from newsapi import NewsApiClient
 import os
 import random
 from nltk.sentiment import SentimentIntensityAnalyzer
+import openai
+from config import apikey
+
+def chat(prompt):
+    global chatStr
+    chatStr="User said: "+prompt+"\n Jarvis: "  
+    openai.api_key=apikey
+   
+    response = openai.Completion.create(
+    model="gpt-3.5-turbo-instruct",
+    prompt=chatStr,
+    temperature=0.74,
+    max_tokens=256,
+    top_p=1,
+    frequency_penalty=0,
+    presence_penalty=0
+    )
+    # print(response["choices"][0]["text"])
+    chatStr+=response["choices"][0]["text"]
+    return chatStr
+
+
+
+def ai(prompt):
+    
+    text=""
+    openai.api_key=apikey
+    # print(apikey)
+
+
+    response = openai.Completion.create(
+    model="gpt-3.5-turbo-instruct",
+    prompt=prompt,
+    temperature=0.74,
+    max_tokens=256,
+    top_p=1,
+    frequency_penalty=0,
+    presence_penalty=0
+    )
+    text+=response["choices"][0]["text"]
+    if not os.path.exists("Openai"):
+        os.mkdir("Openai")
+    with open("Openai/"+prompt+".txt","w") as f:
+        f.write(text)
+
 
 
 def say(text):
     engine = pyttsx3.init()
     engine.say(text)
     engine.runAndWait()
+
+
 
 def greeting():
     hour = datetime.datetime.now().hour
@@ -199,7 +246,15 @@ if __name__ == '__main__':
             else:
                 say("I'm doing fine, thanks for asking!")
    
+        elif 'using artificial intelligence'.lower() in query.lower():
+            ai(prompt=query)
+           
+
 
         elif 'offline' in query or 'bye' in query:
             say("Thank you! Goodbye")
             quit()
+        
+        else:
+            print("Chatting....")
+            say(chat(query))
